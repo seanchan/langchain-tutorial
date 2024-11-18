@@ -12,9 +12,6 @@ const messages = [
   new HumanMessage("hi!"),
 ];
 const parser = new StringOutputParser();
-model
-  .invoke(messages)
-  .then((response) =>
-    parser.invoke(response).then((result) => console.log(result))
-  );
+const chain = model.pipe(parser);
+chain.invoke(messages).then((response) => console.log(response));
 console.log("done");
