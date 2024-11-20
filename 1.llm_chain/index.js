@@ -1,5 +1,6 @@
 const { SystemMessage, HumanMessage } = require("@langchain/core/messages");
 const { StringOutputParser } = require("@langchain/core/output_parsers");
+const { ChatPromptTemplate } = require("@langchain/core/prompts");
 const { ChatOpenAI } = require("@langchain/openai");
 const { HttpsProxyAgent } = require("https-proxy-agent");
 const env = require("dotenv").config();
@@ -9,7 +10,7 @@ const agent = new HttpsProxyAgent("http://127.0.0.1:7890");
 
 const model = new ChatOpenAI(
   {
-    model: "gpt-3.5-turbo",
+    model: "gpt-4",
   },
   {
     apiKey: dotenv.OPENAI_API_KEY,
@@ -21,11 +22,15 @@ const model = new ChatOpenAI(
   }
 );
 
-const messages = [
-  new SystemMessage("Translate the following from English into Italian"),
-  new HumanMessage("hi!"),
-];
+const template = ChatPromptTemplate.fromMessages([
+  ["system", "Translate the following into {language}:"],
+  ["user", "{text}"],
+]);
+
+// const messages = await template.invoke({ language: "italian", text: "hi" });
 const parser = new StringOutputParser();
-const chain = model.pipe(parser);
-chain.invoke(messages).then((response) => console.log(response));
+const chain = template.pipe(model).pipe(parser);
+chain
+  .invoke({ language: "italian", text: "hi" })
+  .then((response) => console.log(response));
 console.log("done");
